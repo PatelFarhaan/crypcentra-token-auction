@@ -18,13 +18,13 @@ class BidData(models.Model):
 
     def serialize(self):
         return {
-            "user_id": self.user_id,
-            "timestamp": self.timestamp,
-            "share_code": self.share_code,
-            "bid_status": self.bid_status,
-            "no_of_shares": self.no_of_shares,
-            "bidding_price": self.bidding_price,
             "number_of_tokens": self.number_of_tokens,
+            "bidding_price": self.bidding_price,
+            "no_of_shares": self.no_of_shares,
+            "bid_status": self.bid_status,
+            "share_code": self.share_code,
+            "timestamp": self.timestamp,
+            "user_id": self.user_id,
         }
 
 
@@ -50,10 +50,10 @@ class Shares(models.Model):
 
     def serialize(self):
         return {
-            "share_code": self.share_code,
-            "share_name": self.share_name,
-            "share_price": self.share_price,
-            "bid_end_time": self.bid_end_time,
+            "share_quantity": self.share_quantity,
             "bid_start_time": self.bid_start_time,
-            "share_quantity": self.share_quantity
+            "bid_end_time": self.bid_end_time,
+            "share_price": self.share_price,
+            "share_code": self.share_code,
+            "share_name": self.share_name
         }

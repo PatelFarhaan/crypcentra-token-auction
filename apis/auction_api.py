@@ -3,43 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 
-@csrf_exempt
-def process_auction_data(request):
-    if request.method != "POST":
-        return JsonResponse({
-            "data": None,
-            "result": False,
-            "message": "method not allowed!",
-        }, status=405)
-
-    if request.body:
-        return JsonResponse({
-            "data": None,
-            "result": False,
-            "message": "this api does not take any input",
-        }, status=400)
-
-    process_pending_bids()
-    bidding_data = BidData.objects.all()
-    print(bidding_data)
-    result = [i.serialize() for i in bidding_data]
-
-    return JsonResponse({
-        "data": result,
-        "result": True,
-        "message": "success",
-    }, status=200)
-
-
 def process_pending_bids():
     bidding_data = process_bid_data(BidData.objects.filter(bid_status="pending").all())
-
-    if not bidding_data:
-        return JsonResponse({
-            "data": None,
-            "result": True,
-            "message": "there is no records for any shares currently",
-        }, status=200)
 
     for share_code, share_price_obj in bidding_data.items():
         share_obj = get_share_details(share_code)
@@ -56,6 +21,15 @@ def process_pending_bids():
                     share_obj.save()
                     for user in user_object:
                         user.save()
+            make_rest_bids_un_successful(share_price_obj)
+
+
+def make_rest_bids_un_successful(bid_object: dict):
+    for k, v in bid_object.items():
+        for bid_data in v:
+            if bid_data.number_of_tokens == 0:
+                bid_data.bid_status = "failed"
+                bid_data.save()
 
 
 def distribute_token(bid_object, share_quantity):
@@ -69,7 +43,7 @@ def distribute_token(bid_object, share_quantity):
         current_bid = bid_object[index]
         if current_bid.number_of_tokens < current_bid.no_of_shares:
             current_bid.number_of_tokens += 1
-            current_bid.bid_status = "fulfilled"
+            current_bid.bid_status = "success"
             share_quantity -= 1
         else:
             all_assigned[index] = True
@@ -106,4 +80,65 @@ def process_share_price(object):
             res[share.bidding_price].append(share)
         else:
             res[share.bidding_price] = [share]
+
+    for k in res:
+        res[k] = sorted(res[k],
+                        reverse=False,
+                        key=lambda x: x.serialize()["timestamp"])
     return res
+
+
+@csrf_exempt
+def get_all_successful_bids(request):
+    if request.method != "POST":
+        return JsonResponse({
+            "data": None,
+            "result": False,
+            "message": "method not allowed!",
+        }, status=405)
+
+    if request.body:
+        return JsonResponse({
+            "data": None,
+            "result": False,
+            "message": "this api does not take any input",
+        }, status=400)
+
+    if BidData.objects.filter(bid_status="pending").all():
+        process_pending_bids()
+
+    bd_object = BidData.objects.filter(bid_status="success").all()
+    result = [bid_data.serialize() for bid_data in bd_object]
+    return JsonResponse({
+        "data": result,
+        "result": True,
+        "message": "success",
+    }, status=200)
+
+
+@csrf_exempt
+def get_all_unsuccessful_bids(request):
+    if request.method != "POST":
+        return JsonResponse({
+            "data": None,
+            "result": False,
+            "message": "method not allowed!",
+        }, status=405)
+
+    if request.body:
+        return JsonResponse({
+            "data": None,
+            "result": False,
+            "message": "this api does not take any input",
+        }, status=400)
+
+    if BidData.objects.filter(bid_status="pending").all():
+        process_pending_bids()
+
+    bd_object = BidData.objects.filter(bid_status="failed").all()
+    result = [bid_data.serialize() for bid_data in bd_object]
+    return JsonResponse({
+        "data": result,
+        "result": True,
+        "message": "success",
+    }, status=200)
