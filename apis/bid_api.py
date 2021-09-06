@@ -44,6 +44,13 @@ def process_bid_data(request):
                 "message": f"share does not exist. Here is the list of available shares {all_sharescode}",
             }, status=400)
 
+        if input_data.get("no_of_shares") <= 0:
+            return JsonResponse({
+                "data": None,
+                "result": False,
+                "message": f"Number of shares cannot be less than 1",
+            }, status=400)
+
         bid_start_time = share_exists.bid_start_time
         bid_end_time = share_exists.bid_end_time
 

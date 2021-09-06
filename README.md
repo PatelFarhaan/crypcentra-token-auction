@@ -14,6 +14,12 @@ docker run -it --name crypcentra -p 8000:8000 crypcentra
 ```
 
 ## Use this Postman for API's
+##Dev:
+```
+https://www.getpostman.com/collections/a00cdbbdb9643f8a3675
+```
+
+##Prod:
 ```
 https://www.getpostman.com/collections/a00cdbbdb9643f8a3675
 ```

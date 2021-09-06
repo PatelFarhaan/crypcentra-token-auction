@@ -142,3 +142,13 @@ def get_all_unsuccessful_bids(request):
         "result": True,
         "message": "success",
     }, status=200)
+
+resp = {
+    "BTC": {
+        "90": ["a", "b", "c"],
+        "85": []
+    },
+    "ETR": {
+        "95": ["a"]
+    }
+}
